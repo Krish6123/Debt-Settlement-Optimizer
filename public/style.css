@@ -1,0 +1,63 @@
+/*
+ * style.css
+ * ----------
+ * Small set of custom rules that Tailwind's utility classes don't
+ * cleanly cover: entrance animation for new list items, focus-visible
+ * polish, and scrollbar tuning. Kept intentionally minimal — Tailwind
+ * handles the rest of the visual system.
+ */
+
+/* Smooth, professional font rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Entrance animation for newly added transaction / settlement rows */
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.row-enter {
+  animation: rowIn 0.22s ease-out;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .row-enter {
+    animation: none;
+  }
+}
+
+/* Thin, unobtrusive scrollbar for the transaction list on overflow */
+#txn-list {
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+#txn-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#txn-list::-webkit-scrollbar-thumb {
+  background-color: #CBD5E1; /* slate-300 */
+  border-radius: 999px;
+}
+
+#txn-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Visible keyboard focus ring, consistent across custom elements */
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}

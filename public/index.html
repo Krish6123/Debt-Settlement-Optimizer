@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ledger — Debt Settlement Optimizer</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#0F172A',      // slate-900, primary text
+            muted: '#64748B',    // slate-500, secondary text
+            surface: '#FFFFFF',
+            canvas: '#F8FAFC',   // slate-50, page background
+            line: '#E2E8F0',     // slate-200, borders
+            brand: '#2563EB',    // blue-600, primary accent
+            'brand-dark': '#1E3A8A', // blue-900
+            credit: '#059669',   // emerald-600, positive / money in
+            debit: '#E11D48',    // rose-600, negative / money out
+          },
+          fontFamily: {
+            display: ['"Space Grotesk"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Typography: Space Grotesk (display), Inter (body/UI), JetBrains Mono (numeric data) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-canvas text-ink font-body min-h-screen antialiased">
+
+  <!-- ============================= HEADER ============================= -->
+  <header class="border-b border-line bg-surface">
+    <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="h-8 w-8 rounded-lg bg-brand flex items-center justify-center">
+          <span class="font-display font-bold text-white text-sm">L</span>
+        </div>
+        <span class="font-display font-semibold text-lg tracking-tight">Ledger</span>
+      </div>
+      <span class="text-sm text-muted font-medium">Debt Settlement Optimizer</span>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-5 gap-8">
+
+    <!-- ========================= LEFT COLUMN: INPUT ========================= -->
+    <section class="lg:col-span-2 flex flex-col gap-6">
+
+      <!-- --- Add Transaction Card --- -->
+      <div class="bg-surface border border-line rounded-2xl p-6 shadow-sm">
+        <h2 class="font-display font-semibold text-base mb-1">Record a transaction</h2>
+        <p class="text-sm text-muted mb-5">Who paid whom, and how much.</p>
+
+        <form id="txn-form" class="flex flex-col gap-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="from" class="block text-xs font-medium text-muted mb-1.5">Sender</label>
+              <input id="from" name="from" type="text" placeholder="e.g. Alice" required
+                class="w-full rounded-lg border border-line bg-canvas px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition" />
+            </div>
+            <div>
+              <label for="to" class="block text-xs font-medium text-muted mb-1.5">Receiver</label>
+              <input id="to" name="to" type="text" placeholder="e.g. Bob" required
+                class="w-full rounded-lg border border-line bg-canvas px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition" />
+            </div>
+          </div>
+
+          <div>
+            <label for="amount" class="block text-xs font-medium text-muted mb-1.5">Amount</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm font-mono">$</span>
+              <input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required
+                class="w-full rounded-lg border border-line bg-canvas pl-7 pr-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition" />
+            </div>
+          </div>
+
+          <p id="form-error" class="text-xs text-debit hidden"></p>
+
+          <button type="submit"
+            class="w-full rounded-lg bg-ink text-white text-sm font-medium py-2.5 hover:bg-brand-dark transition-colors">
+            Add transaction
+          </button>
+        </form>
+      </div>
+
+      <!-- --- Transaction List Card --- -->
+      <div class="bg-surface border border-line rounded-2xl p-6 shadow-sm flex-1">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-display font-semibold text-base">Transactions</h2>
+          <span id="txn-count" class="text-xs font-mono text-muted bg-canvas border border-line rounded-full px-2.5 py-1">0</span>
+        </div>
+
+        <ul id="txn-list" class="flex flex-col gap-2">
+          <!-- Populated by app.js. Empty state shown below by default. -->
+          <li id="txn-empty" class="text-sm text-muted text-center py-8 border border-dashed border-line rounded-lg">
+            No transactions yet — add one above.
+          </li>
+        </ul>
+      </div>
+
+      <button id="optimize-btn" disabled
+        class="w-full rounded-lg bg-brand text-white text-sm font-semibold py-3.5 shadow-sm hover:bg-brand-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
+        <span id="optimize-label">Optimize settlements</span>
+        <svg id="optimize-spinner" class="hidden animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+      </button>
+    </section>
+
+    <!-- ========================= RIGHT COLUMN: RESULTS ========================= -->
+    <section class="lg:col-span-3">
+      <div class="bg-surface border border-line rounded-2xl p-6 shadow-sm lg:sticky lg:top-6">
+
+        <h2 class="font-display font-semibold text-base mb-1">Settlement plan</h2>
+        <p class="text-sm text-muted mb-6">The minimum set of transfers that clears every debt.</p>
+
+        <!-- Empty state, shown before optimization has run -->
+        <div id="results-empty" class="py-16 text-center">
+          <div class="mx-auto h-12 w-12 rounded-full bg-canvas border border-line flex items-center justify-center mb-4">
+            <svg class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </div>
+          <p class="text-sm text-muted">Add transactions, then run the optimizer to see results.</p>
+        </div>
+
+        <!-- Results content, hidden until a successful response arrives -->
+        <div id="results-content" class="hidden flex-col gap-6">
+
+          <!-- Stat tiles -->
+          <div class="grid grid-cols-3 gap-3">
+            <div class="rounded-xl bg-canvas border border-line p-4">
+              <p class="text-xs text-muted mb-1">Original</p>
+              <p id="stat-original" class="font-mono font-semibold text-xl">0</p>
+            </div>
+            <div class="rounded-xl bg-canvas border border-line p-4">
+              <p class="text-xs text-muted mb-1">Optimized</p>
+              <p id="stat-optimized" class="font-mono font-semibold text-xl text-brand">0</p>
+            </div>
+            <div class="rounded-xl bg-canvas border border-line p-4">
+              <p class="text-xs text-muted mb-1">Total moved</p>
+              <p id="stat-total" class="font-mono font-semibold text-xl">$0.00</p>
+            </div>
+          </div>
+
+          <!-- Optimized transfer list -->
+          <div>
+            <h3 class="text-xs font-medium text-muted uppercase tracking-wide mb-3">Transfers</h3>
+            <ul id="settlement-list" class="flex flex-col gap-2"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
