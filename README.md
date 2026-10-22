@@ -6,7 +6,7 @@ The application takes a list of transactions, calculates how much each person ac
 
 🌐 **Live Demo:** https://debt-settlement-htgx.onrender.com
 
-📂 **GitHub:** https://github.com/Krish6123/Debt
+📂 **GitHub:** https://github.com/Krish6123/Debt-Settlement-Optimizer
 
 ---
 
@@ -167,8 +167,8 @@ Where:
 ## Clone the repository
 
 ```bash
-git clone https://github.com/Krish6123/Debt.git
-cd Debt
+git clone https://github.com/Krish6123/Debt-Settlement-Optimizer.git
+cd Debt-Settlement-Optimizer
 ```
 
 ## Install dependencies
